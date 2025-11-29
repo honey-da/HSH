@@ -1,58 +1,91 @@
 import cv2
 import numpy as np
+import onnxruntime as ort
+import socket
 
-net = cv2.dnn.readNetFromONNX("yolov8n.onnx")
+# 서버 연결
+HOST = "127.0.0.1"
+PORT = 9000
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.connect((HOST, PORT))
+
+# YOLOv8m ONNX 로드 (GPU 실행)
+sess = ort.InferenceSession(
+    "yolov8m.onnx",
+    providers=["CUDAExecutionProvider", "CPUExecutionProvider"]
+)
+
+input_name = sess.get_inputs()[0].name
+
+INPUT_W, INPUT_H = 640,640
+CONF_THRES = 0.5
+NMS_THRES = 0.45
+
+def preprocess(img):
+    img = cv2.resize(img,(640,640))
+    img = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
+    img = img.astype(np.float32)/255.0
+    img = np.transpose(img,(2,0,1))[None,:,:,:]
+    return img
+
+def sigmoid(x):
+    return 1/(1+np.exp(-x))
 
 cap = cv2.VideoCapture(0)
 
 while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
+    ret,frame = cap.read()
+    if not ret: break
+    h,w = frame.shape[:2]
 
-    h, w = frame.shape[:2]
+    blob = preprocess(frame)
+    pred = sess.run(None,{input_name:blob})[0]  # (1,84,8400)
+    pred = np.transpose(pred,(0,2,1))[0]        # (8400,84)
 
-    blob = cv2.dnn.blobFromImage(frame, 1/255.0, (640, 640),
-                                 swapRB=True, crop=False)
-    net.setInput(blob)
+    # YOLOv8 후처리
+    pred[:,:4] = sigmoid(pred[:,:4])
+    pred[:,4:] = sigmoid(pred[:,4:])
 
-    preds = net.forward()
-    preds = preds[0].transpose(1, 0)
+    boxes=[]
+    confs=[]
 
-    boxes, class_ids, confidences = [], [], []
+    for det in pred:
+        cx,cy,bw,bh = det[:4]
+        obj = det[4]
+        cls = det[5]   # person only
 
-    for det in preds:
-        conf = det[4]
-        if conf < 0.5:
+        conf = obj*cls
+        if conf < CONF_THRES:
             continue
 
-        cls_scores = det[5:]
-        cls_id = np.argmax(cls_scores)
-        cls_conf = cls_scores[cls_id]
-        if cls_conf < 0.5:
-            continue
+        cx = cx * w
+        cy = cy * h
+        bw = bw * w
+        bh = bh * h
 
-        cx, cy, bw, bh = det[:4]
-        x1 = int((cx - bw/2) * w / 640)
-        y1 = int((cy - bh/2) * h / 640)
-        x2 = int((cx + bw/2) * w / 640)
-        y2 = int((cy + bh/2) * h / 640)
+        x1 = int(cx - bw/2)
+        y1 = int(cy - bh/2)
 
-        boxes.append([x1, y1, x2, y2])
-        class_ids.append(cls_id)
-        confidences.append(float(conf))
+        boxes.append([x1,y1,int(bw),int(bh)])
+        confs.append(float(conf))
 
-    for (x1, y1, x2, y2), cid, conf in zip(boxes, class_ids, confidences):
-        cv2.rectangle(frame, (x1, y1), (x2, y2), (0,255,0), 2)
-        cv2.putText(frame,
-                    f"{cid}:{conf:.2f}",
-                    (x1, y1-10),
-                    cv2.FONT_HERSHEY_SIMPLEX,
-                    0.6, (0,255,0), 2)
+    idxs = cv2.dnn.NMSBoxes(boxes, confs, CONF_THRES,NMS_THRES)
 
-    cv2.imshow("YOLO Cam", frame)
-    if cv2.waitKey(1) == ord('q'):
+    detected = False
+
+    if len(idxs)>0:
+        detected=True
+        for i in idxs.flatten():
+            x,y,bw,bh= boxes[i]
+            cv2.rectangle(frame,(x,y),(x+bw,y+bh),(0,255,0),2)
+
+    if detected:
+        sock.sendall(b"WAKE\n")
+
+    cv2.imshow("YOLOv8m GPU",frame)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
 cap.release()
+sock.close()
 cv2.destroyAllWindows()
