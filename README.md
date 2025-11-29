@@ -15,6 +15,8 @@ pip install numpy==1.26.4
 pip install onnxruntime-gpu
 pip install opencv-python numpy
 
+conda install -c conda-forge cudnn=9.1
+
 
 ##web-UI
 
