@@ -1,9 +1,19 @@
-# HSH
+<img width="2083" height="482" alt="image" src="https://github.com/user-attachments/assets/22e9c6f8-d34d-4ecd-9caa-d1c0f0515a41" /># HSH
 ##YOLO 
 
+cuda 12.2.0:
+widows, x86_64 11 exe(local)
 파이썬 아나콘다로 conda create -n wake python=3.10 -y
-지금 detect.py는 전달하는 기능까지는 구현안함.
-pytorch 2.5.1버전 
+
+pytorch 2.5.1버전
+
+numpy 1.26.4
+pip install numpy==1.26.4
+
+pip install onnxruntime-gpu
+pip install opencv-python numpy
+
+
 ##web-UI
 
 현재까지 진행사항 : HTML자체에서 구현가능한 버튼들은 구현 완료.. <예시. 알람 설정, 화면 세팅 등등>
