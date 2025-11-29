@@ -3,7 +3,7 @@
 
 파이썬 아나콘다로 conda create -n wake python=3.10 -y
 지금 detect.py는 전달하는 기능까지는 구현안함.
-
+pytorch 2.5.1버전 
 ##web-UI
 
 현재까지 진행사항 : HTML자체에서 구현가능한 버튼들은 구현 완료.. <예시. 알람 설정, 화면 세팅 등등>
