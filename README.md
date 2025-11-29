@@ -4,6 +4,8 @@
 cuda 12.2.0:
 widows, x86_64 11 exe(local)
 파이썬 아나콘다로 conda create -n wake python=3.10 -y
+conda activate wake
+cd C:\Users\jyh10\source\repos\wake_alarm
 
 pytorch 2.5.1버전
 
