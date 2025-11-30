@@ -10,9 +10,7 @@ conda activate wake
 
 cd C:\Users\jyh10\source\repos\wake_alarm
 
-pytorch 2.5.1버전
-
-numpy 1.26.4
+pip install flask
 
 pip install numpy==1.26.4
 
@@ -24,22 +22,22 @@ conda install -c conda-forge cudnn=9.1
 
 ##start.bat
 @echo off
-title HOME SWEAT HOME - AUTO LAUNCHER
+title HOME SWEAT HOME - AUTO LAUNCHER (FINAL)
 
 REM ================================
-REM 1) 아나콘다 wake 환경 활성화
+REM 1) Conda 환경 절대경로로 wake 활성화
 REM ================================
-call conda activate wake
+call C:\Users\jyh10\anaconda3\Scripts\activate.bat wake
 
 REM ================================
-REM 2) Flask 서버 실행(server.py)
+REM 2) 서버 실행
 REM ================================
 start cmd /k "cd /d C:\Users\jyh10\source\repos\wake_alarm && python server.py"
 
 REM ================================
-REM 3) 서버 준비 대기 (1초)
+REM 3) 2초 대기
 REM ================================
-timeout /t 1 > nul
+timeout /t 2 > nul
 
 REM ================================
 REM 4) HTML 자동 실행
