@@ -22,6 +22,33 @@ pip install opencv-python numpy
 
 conda install -c conda-forge cudnn=9.1
 
+##start.bat
+@echo off
+title HOME SWEAT HOME - AUTO LAUNCHER
+
+REM ================================
+REM 1) 아나콘다 wake 환경 활성화
+REM ================================
+call conda activate wake
+
+REM ================================
+REM 2) Flask 서버 실행(server.py)
+REM ================================
+start cmd /k "cd /d C:\Users\jyh10\source\repos\wake_alarm && python server.py"
+
+REM ================================
+REM 3) 서버 준비 대기 (1초)
+REM ================================
+timeout /t 1 > nul
+
+REM ================================
+REM 4) HTML 자동 실행
+REM ================================
+start "" "C:\Users\jyh10\source\repos\wake_alarm\홈스윗홈_최종수정_detect자동.html"
+
+exit
+
+
 
 ##web-UI
 
